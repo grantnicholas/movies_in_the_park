@@ -1,0 +1,47 @@
+version: '3'
+services:
+  postgres:
+    image: "postgres:10.5"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "until PGPASSWORD=root psql -h 'postgres' -U 'root' -c '\\q'; do echo 'postgres sleeping' && sleep 1; done && echo 'postgres ready' "]
+      interval: 30s
+      timeout: 10s
+      retries: 5  
+  airflow_init:
+    build: ./airflow/.
+    entrypoint: "sh -c"
+    # Would normally do another healthcheck here for postgres, but for a dummy app lets just sleep
+    command: ["sleep 10 && usr/local/bin/airflow initdb"]
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
+    depends_on:
+      - "postgres"
+    restart: on-failure             
+  scheduler:
+    build: ./airflow/.
+    entrypoint: "sh -c"
+    command: ["/bootstrap.sh scheduler"]
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
+    depends_on:
+      - "postgres"  
+      - "airflow_init"
+    restart: on-failure  
+  webserver:
+    build: ./airflow/.
+    entrypoint: "sh -c"
+    command: ["/bootstrap.sh webserver"] 
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "postgres"  
+      - "airflow_init"
+    restart: on-failure  
