@@ -5,8 +5,8 @@ FROM ubuntu:16.04
 # install deps
 RUN apt-get update -y && apt-get install -y \
         wget \
-        python-dev \
-        python-pip \
+        python3-dev \
+        python3-pip \
         libczmq-dev \
         libcurlpp-dev \
         curl \
@@ -18,13 +18,17 @@ RUN apt-get update -y && apt-get install -y \
         unzip \
     && apt-get clean
 
-RUN pip install --upgrade pip
+RUN pip3 install --upgrade pip
 
-# Since we install vanilla Airflow, we also want to have support for Postgres and Kubernetes
-RUN pip install -U setuptools && \
-    pip install cryptography && \
-    pip install psycopg2-binary==2.7.4 && \
-    pip install apache-airflow[postgres]==1.9.0
+# Airflow deps + postgres deps for airflow
+RUN pip3 install -U setuptools && \
+    pip3 install cryptography && \
+    pip3 install psycopg2-binary==2.7.4 && \
+    pip3 install apache-airflow[postgres]==1.9.0
+
+# Workflow deps
+# For pandas parquet support
+RUN pip3 install pyarrow==0.10.0
 
 COPY bootstrap.sh /bootstrap.sh
 RUN chmod +x /bootstrap.sh
