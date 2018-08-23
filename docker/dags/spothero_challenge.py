@@ -24,7 +24,7 @@ def fetch_movie_ratings_task():
 
 
 
-with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval='@daily', dagrun_timeout=timedelta(minutes=60) ) as dag:
+with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval='@daily', dagrun_timeout=timedelta(minutes=60), max_active_runs=1) as dag:
 	(
 		PythonOperator(task_id="fetch_chicago_movies", python_callable=fetch_chicago_movies_task) 
 		>> PythonOperator(task_id="second", python_callable=fetch_movie_ratings_task)
