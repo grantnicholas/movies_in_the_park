@@ -32,6 +32,7 @@ services:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__BASE_LOG_FOLDER=/root/airflow/logs
+      - DARKSKY_API_KEY=f0c52be3fb6347fb5e97af2b78090956
     volumes:
       - ./dags:/root/airflow/dags 
       - ./logs:/root/airflow/logs    
@@ -48,6 +49,7 @@ services:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__BASE_LOG_FOLDER=/root/airflow/logs
+      - DARKSKY_API_KEY=f0c52be3fb6347fb5e97af2b78090956
     volumes:
       - ./dags:/root/airflow/dags
       - ./logs:/root/airflow/logs       

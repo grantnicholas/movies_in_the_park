@@ -26,7 +26,7 @@ def enrich_movies_with_weather(movies_df, DARKSKY_API_KEY):
 	movies_df["showtime"] = movies_df["date"] + pd.Timedelta(hours=8)
 
 	movies_df["forecast_current_year"], movies_df["temperature"], movies_df["humidity"], movies_df["precip_prob"]  = zip(
-		*movies_df.apply(lambda row: get_forecast(row, API_KEY), axis=1)
+		*movies_df.apply(lambda row: get_forecast(row, DARKSKY_API_KEY), axis=1)
 	)
 
 	return movies_df
