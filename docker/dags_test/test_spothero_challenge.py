@@ -1,5 +1,5 @@
 import pytest
-from ..dags import spothero_challenge, darksky_api
+from spothero_challenge import spothero_challenge, darksky_api
 import datetime
 
 def test():

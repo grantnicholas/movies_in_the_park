@@ -16,8 +16,8 @@ import shutil
 from uuid import uuid4
 import hashlib
 
-from dataframe_processing import enrich_movies, enrich_movies_with_weather, enrich_titles_and_ratings
-from workflow_utils import fetch_file, WorkflowDataFetcher
+from spothero_challenge.dataframe_processing import enrich_movies, enrich_movies_with_weather, enrich_titles_and_ratings
+from spothero_challenge.workflow_utils import fetch_file, WorkflowDataFetcher
 
 
 

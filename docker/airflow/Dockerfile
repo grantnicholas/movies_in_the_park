@@ -30,6 +30,7 @@ RUN pip3 install -U setuptools && \
 # For pandas parquet support
 RUN pip3 install pyarrow==0.10.0
 
+
 COPY bootstrap.sh /bootstrap.sh
 RUN chmod +x /bootstrap.sh
 
