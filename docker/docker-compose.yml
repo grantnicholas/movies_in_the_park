@@ -1,6 +1,8 @@
 version: '3'
 services:
   postgres:
+    # Not mounting a data volume here, all data will get wiped away on restart of the container
+    # Not suitable for production, but useful for testing
     image: "postgres:10.5"
     environment:
       - POSTGRES_USER=root
@@ -29,13 +31,16 @@ services:
     # Would not install a python package at deploytime like this in production, but it sure does make testing easier since you don't have to rebuild a docker image
     command: ["pip install -e /root/airflow/dags/. && /bootstrap.sh scheduler"]
     environment:
+      # Secrets should be encrypted and not stored in the git repo 
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__BASE_LOG_FOLDER=/root/airflow/logs
       - DARKSKY_API_KEY=f0c52be3fb6347fb5e97af2b78090956
     volumes:
       - ./dags:/root/airflow/dags 
-      - ./logs:/root/airflow/logs    
+      - ./logs:/root/airflow/logs
+      # Using a local data volume here, but could mount an s3 bucket as a volume
+      - ./data:/data    
     depends_on:
       - "postgres"  
       - "airflow_init"
@@ -43,16 +48,19 @@ services:
   webserver:
     build: ./airflow/.
     entrypoint: "sh -c"
-  # Would not install a python package at deploytime like this in production, but it sure does make testing easier since you don't have to rebuild a docker image
+    # Would not install a python package at deploytime like this in production, but it sure does make testing easier since you don't have to rebuild a docker image
     command: ["pip install -e /root/airflow/dags/. && /bootstrap.sh webserver"] 
     environment:
+      # Secrets should be encrypted and not stored in the git repo 
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@postgres:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__BASE_LOG_FOLDER=/root/airflow/logs
       - DARKSKY_API_KEY=f0c52be3fb6347fb5e97af2b78090956
     volumes:
       - ./dags:/root/airflow/dags
-      - ./logs:/root/airflow/logs       
+      - ./logs:/root/airflow/logs  
+      # Using a local data volume here, but could mount an s3 bucket as a volume
+      - ./data:/data     
     ports:
       - "8080:8080"
     depends_on:
