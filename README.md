@@ -41,3 +41,5 @@ enable the "spothero_challenge" DAG
 - The pipeline will skip fetching weather data if the chicago movies dataset ETAG has not changed. This is to prevent hitting the darksky API limit. The other datasets do not have similar caching logic implemented since they process so quickly anyways and there are no API limits to worry about. 
 
 
+## Workflow image
+<img src="/docs/airflow_img.png" alt="Image of the successful airflow workflow"/>
