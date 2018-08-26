@@ -140,8 +140,10 @@ def create_final_report_with_datefilter():
     )
 
 
-with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval='@hourly',
-         dagrun_timeout=timedelta(minutes=50), max_active_runs=1, catchup=False) as dag:
+# every 30 minutes
+schedule_interval = '*/30 * * * *'
+with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval=schedule_interval,
+         dagrun_timeout=timedelta(minutes=25), max_active_runs=1, catchup=False) as dag:
     chicago_movies_task = PythonOperator(task_id="fetch_chicago_movies", python_callable=fetch_chicago_movies_task)
     maybe_skip_weather_task = BranchPythonOperator(task_id="maybe_skip_weather_task",
                                                    python_callable=maybe_skip_weather, provide_context=True)
@@ -168,26 +170,3 @@ with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval='@hou
 
     # Joined flow
     join_imdb_to_weathermovies_task >> final_report_task
-
-
-# Main for manual testing
-def main():
-    # Override the workflow dir to store data in the data directory
-    # This is nice for manual testing, the data pulled for manual testing gets mounted into the airflow container
-    directory = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-    data_dir = os.path.join(directory, "data")
-    data_manager._workflow_dir = data_dir
-
-    # fetch_chicago_movies_task()
-    # fetch_chicago_movies_weather_task()
-
-    # fetch_movie_ratings_task()
-    # fetch_movie_titles_task()
-    # enrich_imdb_movie_data_task()
-    # join_imdb_to_movies_with_weather_task()
-
-    create_final_report_with_datefilter()
-
-
-if __name__ == "__main__":
-    main()
