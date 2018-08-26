@@ -1,3 +1,6 @@
+# intellij files
+.idea/
+
 # airflow volumes
 data/
 logs/
