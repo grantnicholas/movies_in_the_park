@@ -2,9 +2,9 @@
 .idea/
 
 # airflow volumes
-data/
-!data/.stage
-!data/cache_tags
+data/*
+!data/.stage/.gitkeep
+!data/cache_tags/.gitkeep
 logs/
 
 # Byte-compiled / optimized / DLL files

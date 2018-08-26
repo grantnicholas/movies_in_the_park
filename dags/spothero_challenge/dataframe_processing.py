@@ -10,7 +10,9 @@ def enrich_movies(movies_df):
     keep_these_cols = [c for c in list(movies_df.columns) if not c.startswith(":@computed_region")]
     filtered_movies_df = movies_df[keep_these_cols]
 
-    filtered_movies_df["longitude"], filtered_movies_df["latitude"] = zip(*filtered_movies_df["location"].apply(_extract_lat_and_long))
+    filtered_movies_df["longitude"], filtered_movies_df["latitude"] = zip(
+        *filtered_movies_df["location"].apply(_extract_lat_and_long)
+    )
     return filtered_movies_df.drop(columns=["location"])
 
 
