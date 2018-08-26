@@ -5,59 +5,68 @@ import requests
 from uuid import uuid4
 
 
+# Utils for pulling down files from imdb
 def fetch_file(url, path):
 	response = requests.get(url, stream=True)
 	with open(path, "wb+") as f:
 		shutil.copyfileobj(response.raw, f)
 		f.flush()
 
-def _md5(path):
-	signature = hashlib.md5()
-	with open(path, "rb") as f:
-		for l in f:
-			signature.update(l)
-	return signature.hexdigest()
+def fetch_etag(url):
+	response = requests.head(url)
+	ETag = response.headers.get("ETag", None)
+	return ETag
 
-def atomic_swap(stage_file_path, data_file_path):
-	"""
-	Returns boolean; True=data was modified, False=data was not modified
-	"""
-	matches = os.path.exists(data_file_path) and _md5(stage_file_path) == _md5(data_file_path)
-	if matches:
-		# We don't need the new staged data since it is identical to the previous data
-		os.remove(stage_file_path)
-		return False
-	else:
-		# We do need the new staged data, atomically rename it to the final destination
-		os.rename(stage_file_path, data_file_path)
-		return True
+# For writing to a file atomically
+def _atomic_write(tmp_file_path, final_file_path, func):
+	with open(tmp_file_path, "w+") as tmpfile:
+		func(tmpfile)
 
-class WorkflowDataFetcher:
+	os.rename(tmp_file_path, final_file_path)
+
+
+def _get_contents(path):
+	try:
+		with open(path, "r") as f:
+			return f.read()
+	except FileNotFoundError:
+		return None
+
+class WorkflowDataManager:
 	def __init__(self, workflow_dir):
 		self._workflow_dir = workflow_dir
-		self._stage_dir = os.path.join(workflow_dir, ".stage")
 
-		try:
-			os.mkdir(self._workflow_dir)
-		except FileExistsError:
-			pass
+	@property
+	def _stage_dir(self):
+		return os.path.join(self._workflow_dir, ".stage")
 
-		try:
-			os.mkdir(self._stage_dir)
-		except FileExistsError:
-			pass
+	@property
+	def _cache_dir(self):
+		return os.path.join(self._workflow_dir, "cache_tags")
 
-	def _get_data_path(self, dataset_name):
+	def _get_stage_path(self):
+		return os.path.join(self._stage_dir, uuid4().hex)
+
+	def _get_cache_path(self, dataset_name):
+		return os.path.join(self._cache_dir, dataset_name)
+
+	def get_data_path(self, dataset_name):
 		return os.path.join(self._workflow_dir, dataset_name)
 
-	def fetch(self, fetch_func, dataset_name):
-		"""
-		Returns tuple (output, did_change);
-		where output is the return value of the fetch_func
-		where did_change indicates whether the underlying datasource changed
-		"""
-		stage_path = uuid4().hex
-		final_path = self._get_data_path(dataset_name)
-		fetch_func(stage_path)
-		did_change = atomic_swap(stage_path, final_path)
+	def update_cache_tag(self, dataset_name, current_cache_tag, did_change_func=lambda: None, did_not_change_func=lambda: None):
+		cache_path = self._get_cache_path(dataset_name)
+		last_cache_tag = _get_contents(cache_path)
+		did_change = last_cache_tag in (None, "") or current_cache_tag in (None, "") or current_cache_tag != last_cache_tag
+
+		if did_change:
+			did_change_func()
+
+			# commit the cache tag after the callback
+			stage_path = self._get_stage_path()
+			_atomic_write(stage_path, cache_path, lambda tmpfile: tmpfile.write(current_cache_tag))
+		else:
+			did_not_change_func()
+
 		return did_change
+
+
