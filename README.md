@@ -34,10 +34,10 @@ enable the "spothero_challenge" DAG
 ```
 
 ## Info about the data pipeline
-The pipeline is a DAG in Airflow. By default it is not enabled in order to not spam your computer with background tasks. Please enable the spothero_challenge DAG by toggling the "OFF/ON" button in the Airflow UI or it will not run. 
-The pipeline runs every 30 minutes by default.
-The pipeline runs locally (not in a cloud provider). I did this to save time and and money as I did not want to create a separate account with billing info just for this challenge. 
-The output data gets put in the `data` folder. You can see temporary/intermediate results as well as the final report `report.final.csv`.
-The pipeline will skip fetching weather data if the chicago movies dataset ETAG has not changed. This is to prevent hitting the darksky API limit. The other datasets do not have similar caching logic implemented since they process so quickly anyways and there are no API limits to worry about. 
+- The pipeline is a DAG in Airflow. By default it is not enabled in order to not spam your computer with background tasks. Please enable the spothero_challenge DAG by toggling the "OFF/ON" button in the Airflow UI or it will not run. 
+- The pipeline runs every 30 minutes by default.
+- The pipeline runs locally (not in a cloud provider). I did this to save time and and money as I did not want to create a separate account with billing info just for this challenge. 
+- The output data gets put in the `data` folder. You can see temporary/intermediate results as well as the final report `report.final.csv`.
+- The pipeline will skip fetching weather data if the chicago movies dataset ETAG has not changed. This is to prevent hitting the darksky API limit. The other datasets do not have similar caching logic implemented since they process so quickly anyways and there are no API limits to worry about. 
 
- 
+
