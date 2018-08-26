@@ -3,6 +3,8 @@
 
 # airflow volumes
 data/
+!data/.stage
+!data/cache_tags
 logs/
 
 # Byte-compiled / optimized / DLL files

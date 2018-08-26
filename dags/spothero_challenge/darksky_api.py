@@ -6,10 +6,9 @@ import requests
 def get_forecast(row, API_KEY):
     latitude = row["latitude"]
     longitude = row["longitude"]
-    date = row["date"]
     showtime = row["showtime"]
 
-    return _get_forecast(latitude, longitude, date, showtime, API_KEY)
+    return _get_forecast(latitude, longitude, showtime, API_KEY)
 
 
 def _parse_darksky_response(dictionary):
@@ -17,7 +16,7 @@ def _parse_darksky_response(dictionary):
     temperature = current_data["temperature"]
     humidity = current_data["humidity"]
     precip_prob = current_data["precipProbability"]
-    return (temperature, humidity, precip_prob)
+    return temperature, humidity, precip_prob
 
 
 def _forecast_url(API_KEY, latitude, longitude, datetime):
@@ -27,7 +26,15 @@ def _forecast_url(API_KEY, latitude, longitude, datetime):
     return url
 
 
-def _get_forecast(latitude, longitude, date, showtime, API_KEY):
+def _get_forecast(latitude, longitude, showtime, API_KEY):
+    """
+    Returns (is_forecast_current_year, temperature, humidity, precipProbability)
+    :param latitude: lat
+    :param longitude: long
+    :param showtime: the datetime for forecasting
+    :param API_KEY: DARKSKY api key
+    :return:
+    """
     if pd.isnull(latitude) or pd.isnull(longitude):
         return (np.NaN, np.NaN, np.NaN, np.NaN)
 
@@ -40,7 +47,7 @@ def _get_forecast(latitude, longitude, date, showtime, API_KEY):
             _forecast_url(API_KEY, latitude, longitude, last_year)
         )
         response.raise_for_status()
-        return (True,) + _parse_darksky_response(response.json())
+        return (False,) + _parse_darksky_response(response.json())
     else:
         response.raise_for_status()
-        return (False,) + _parse_darksky_response(response.json())
+        return (True,) + _parse_darksky_response(response.json())

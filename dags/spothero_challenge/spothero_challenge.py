@@ -2,11 +2,12 @@ import requests
 import pandas as pd
 import json
 import os
-from datetime import timedelta, datetime, date
-import pytz
+from datetime import timedelta
 
-from spothero_challenge.dataframe_processing import enrich_movies, enrich_movies_with_weather, \
-    enrich_titles_and_ratings, create_final_report
+from spothero_challenge.dataframe_processing import (
+    enrich_movies, enrich_movies_with_weather,
+    enrich_titles_and_ratings, create_final_report, filter_only_unshown_movies
+)
 from spothero_challenge.workflow_utils import fetch_file, fetch_etag, WorkflowDataManager
 
 import airflow
@@ -128,18 +129,12 @@ def join_imdb_to_movies_with_weather_task():
 
 
 def create_final_report_with_datefilter():
-    # tz-aware datetime
-    cst_now = datetime.now(pytz.timezone('America/Chicago'))
-    # erase the tzinfo since we are given the date of the movie without a timezone (it's in CST because of Chicago)
-    naive_now = date(year=cst_now.year, month=cst_now.month, day=cst_now.day)
-
     report_df = pd.read_parquet(
         data_manager.get_data_path("report.unfiltered.parquet")
     )
 
-    final_report_df = report_df[report_df["date"].dt.date >= naive_now]
+    final_report_df = filter_only_unshown_movies(report_df)
 
-    print(final_report_df)
     final_report_df.to_csv(
         data_manager.get_data_path("report.final.csv"), index=False, encoding="utf-8"
     )
@@ -162,9 +157,9 @@ with DAG(dag_id='spothero_challenge', default_args=args, schedule_interval='@hou
     # Chicago movies in the park with weather flow
     (
             chicago_movies_task >>
-            maybe_skip_weather_task >> [movies_weather_task,
-                                        DummyOperator(task_id="skipped_weather_task")] >> DummyOperator(
-        task_id="join_skipped_tasks", trigger_rule='one_success') >>
+            maybe_skip_weather_task >>
+            [movies_weather_task, DummyOperator(task_id="skipped_weather_task")] >>
+            DummyOperator(task_id="join_skipped_tasks", trigger_rule='one_success') >>
             join_imdb_to_weathermovies_task
     )
 

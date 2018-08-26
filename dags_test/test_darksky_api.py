@@ -1,10 +1,5 @@
-import pytest
 from spothero_challenge import spothero_challenge, darksky_api
 import datetime
-
-
-def test():
-    assert 1 == 1
 
 
 def test_construct_darksky_url():
